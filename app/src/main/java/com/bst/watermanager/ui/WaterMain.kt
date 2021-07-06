@@ -73,12 +73,21 @@ class WaterMain : AppCompatActivity(), ContainersAdapter.ContainerAdapterListene
         }
     }
 
-    override fun onClickListener(position: Int, isAdd: Boolean) {
-        // TODO("Not yet implemented")
-        Log.i(TAG, "")
+    override fun addVolume(uid: Int?) {
+        uid?.let {
+            val cont = contViewModel.getContainer(uid)
+            Log.i(TAG, cont.toString())
+        }
     }
 
-    override fun deleteContainer(position: Int) {
+    override fun removeVolume(uid: Int?) {
+        uid?.let {
+            val cont = contViewModel.getContainer(uid)
+            Log.i(TAG, cont.toString())
+        }
+    }
+
+    override fun deleteContainer(uid: Int?) {
         // TODO("Not yet implemented")
     }
 

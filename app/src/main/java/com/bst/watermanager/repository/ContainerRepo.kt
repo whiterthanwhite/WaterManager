@@ -15,6 +15,10 @@ class ContainerRepo(
         return contDao.getAll()
     }
 
+    fun getContainer(uid: Int) : Container? {
+        return contDao.getContainer(uid)?.value
+    }
+
     fun addContainer(container: Container) {
         GlobalScope.launch {
             val contId = contDao.insertContainer(container)

@@ -22,11 +22,16 @@ class ContainersViewModel : ViewModel() {
                 containerList ->
                 containerList.map {
                     container ->
-                    Container(name = container.name, volume = container.volume)
+                    Container(container.uid, container.name, container.volume)
                 }
             }
         }
         return liveCont
+    }
+
+    fun getContainer(uid: Int) : Container? {
+        val repo = contRepo ?: return null
+        return repo.getContainer(uid)
     }
 
     fun addContainer(container: Container) {

@@ -33,7 +33,8 @@ class AddContainerFragment : DialogFragment() {
                     dialog, id ->
                     val name = addContDial.contNameAdd.text.toString()
                     val volume = addContDial.contVolumeAdd.text.toString().toInt()
-                    contViewModel.addContainer(Container(name = name, volume = volume))
+                    contViewModel.addContainer(Container(name = name,
+                        volume = volume))
                     listener.onDialogPositiveClick()
                 })
                 .setNegativeButton(R.string.cancel, DialogInterface.OnClickListener {

@@ -21,8 +21,9 @@ class ContainersAdapter(
     lateinit var listener: ContainerAdapterListener
 
     interface ContainerAdapterListener {
-        fun onClickListener(position: Int, isAdd: Boolean)
-        fun deleteContainer(position: Int)
+        fun addVolume(uid: Int?)
+        fun removeVolume(uid: Int?)
+        fun deleteContainer(uid: Int?)
     }
 
     class ViewHolder(view: View, contInfoBind: ContainerInfoBinding) :
@@ -52,17 +53,18 @@ class ContainersAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         dataset?.let {
-            holder.contName.text = it[position].name
-            holder.contVolume.text = "${it[position].volume} ml"
+            listContainers ->
+            holder.contName.text = listContainers[position].name
+            holder.contVolume.text = "${listContainers[position].volume} ml"
 
             holder.volAdd.setOnClickListener {
-                listener.onClickListener(position, true)
+                listener.addVolume(listContainers[position].uid)
             }
             holder.volRemove.setOnClickListener {
-                listener.onClickListener(position, false)
+                listener.removeVolume(listContainers[position].uid)
             }
             holder.contDel.setOnClickListener {
-                listener.deleteContainer(position)
+                listener.deleteContainer(listContainers[position].uid)
             }
         }
     }

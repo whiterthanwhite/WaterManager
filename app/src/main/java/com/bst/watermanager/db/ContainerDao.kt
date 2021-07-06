@@ -13,8 +13,8 @@ interface ContainerDao {
     @Query("SELECT * FROM Container ORDER BY uid")
     fun getAll(): LiveData<List<Container>>
 
-    @Query("SELECT * FROM CONTAINER WHERE uid = :contId")
-    fun getContainer(contId: Int) : Container
+    @Query("SELECT * FROM Container WHERE uid = :contId LIMIT 1")
+    fun getContainer(contId: Int) : LiveData<Container>?
 
     @Query("SELECT * FROM VolumeStatistic ORDER BY date")
     fun getVolumeStat() : LiveData<List<VolumeStatistic>>
