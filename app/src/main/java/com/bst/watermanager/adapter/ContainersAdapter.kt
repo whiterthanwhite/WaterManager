@@ -21,9 +21,9 @@ class ContainersAdapter(
     lateinit var listener: ContainerAdapterListener
 
     interface ContainerAdapterListener {
-        fun addVolume(uid: Int?)
-        fun removeVolume(uid: Int?)
-        fun deleteContainer(uid: Int?)
+        fun addVolume(cont: Container)
+        fun removeVolume(cont: Container)
+        fun deleteContainer(cont: Container)
     }
 
     class ViewHolder(view: View, contInfoBind: ContainerInfoBinding) :
@@ -58,13 +58,13 @@ class ContainersAdapter(
             holder.contVolume.text = "${listContainers[position].volume} ml"
 
             holder.volAdd.setOnClickListener {
-                listener.addVolume(listContainers[position].uid)
+                listener.addVolume(listContainers[position])
             }
             holder.volRemove.setOnClickListener {
-                listener.removeVolume(listContainers[position].uid)
+                listener.removeVolume(listContainers[position])
             }
             holder.contDel.setOnClickListener {
-                listener.deleteContainer(listContainers[position].uid)
+                listener.deleteContainer(listContainers[position])
             }
         }
     }

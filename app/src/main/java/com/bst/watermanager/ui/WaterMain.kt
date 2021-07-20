@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bst.watermanager.adapter.ContainersAdapter
 import com.bst.watermanager.databinding.WaterMainBinding
 import com.bst.watermanager.db.AppDatabase
+import com.bst.watermanager.model.Container
 import com.bst.watermanager.repository.ContainerRepo
 import com.bst.watermanager.util.DateUtils
 import com.bst.watermanager.viewmodel.ContainersViewModel
@@ -17,7 +18,7 @@ class WaterMain : AppCompatActivity(), ContainersAdapter.ContainerAdapterListene
     AddContainerFragment.AddContainerListener
 {
     private val TAG = "WATER_MAIN"
-    private val contViewModel: ContainersViewModel by viewModels()
+    private var contViewModel: ContainersViewModel? = null
 
     private lateinit var waterMainBdg : WaterMainBinding
     private lateinit var contAdap : ContainersAdapter
@@ -28,13 +29,13 @@ class WaterMain : AppCompatActivity(), ContainersAdapter.ContainerAdapterListene
         setContentView(waterMainBdg.root)
         setupViewModels()
         updateControls()
-        setupContainerListView()
+        setFAB()
     }
 
     private fun setupViewModels() {
         val db = AppDatabase.getInstance(this)
-        val contDao = db.containerDao()
-        contViewModel.contRepo = ContainerRepo(contDao)
+        val contRepo = ContainerRepo(db.containerDao())
+        contViewModel = ContainersViewModel(contRepo)
     }
 
     private fun updateControls() {
@@ -49,8 +50,17 @@ class WaterMain : AppCompatActivity(), ContainersAdapter.ContainerAdapterListene
         waterMainBdg.containerList.addItemDecoration(dividerItemDecoration)
 
         contAdap = ContainersAdapter(null, this, this)
-        waterMainBdg.containerList.adapter = contAdap
+        contViewModel?.getContainers()?.observe(this, {
+            contAdap.setContainerList(it)
+            waterMainBdg.containerList.adapter = contAdap
+        })
 
+        contViewModel?.getCurrVolStat()?.observe(this, {
+            waterMainBdg.volumeAmount.text = it?.volume.toString()
+        })
+    }
+
+    private fun setFAB() {
         val addContFAB = waterMainBdg.addContainer
         val addContFrag = AddContainerFragment()
         addContFAB.setOnClickListener {
@@ -58,41 +68,20 @@ class WaterMain : AppCompatActivity(), ContainersAdapter.ContainerAdapterListene
         }
     }
 
-    private fun setupContainerListView() {
-        contViewModel.getContainers()?.observe(this, {
-            it?.let {
-                showContainers()
-            }
-        })
-    }
-
-    private fun showContainers() {
-        val containers = contViewModel.getContainers()?.value
-        containers?.let {
-            contAdap.setContainerList(it)
-        }
-    }
-
-    override fun addVolume(uid: Int?) {
-        uid?.let {
-            val cont = contViewModel.getContainer(uid)
-            Log.i(TAG, cont.toString())
-        }
-    }
-
-    override fun removeVolume(uid: Int?) {
-        uid?.let {
-            val cont = contViewModel.getContainer(uid)
-            Log.i(TAG, cont.toString())
-        }
-    }
-
-    override fun deleteContainer(uid: Int?) {
+    override fun addVolume(cont: Container) {
         // TODO("Not yet implemented")
     }
 
-    override fun onDialogPositiveClick() {
+    override fun removeVolume(cont: Container) {
         // TODO("Not yet implemented")
+    }
+
+    override fun deleteContainer(cont: Container) {
+        contViewModel?.deleteContainer(cont)
+    }
+
+    override fun onDialogPositiveClick(cont: Container) {
+        contViewModel?.insertContainer(cont)
     }
 
     override fun onDialogNegativeClick() {

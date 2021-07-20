@@ -1,67 +1,81 @@
 package com.bst.watermanager.viewmodel
 
+import android.provider.Settings
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.bst.watermanager.model.Container
 import com.bst.watermanager.model.VolumeStatistic
 import com.bst.watermanager.repository.ContainerRepo
+import com.bst.watermanager.util.DateUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
-class ContainersViewModel : ViewModel() {
-    var contRepo: ContainerRepo? = null
-    var liveCont: LiveData<List<Container>>? = null
-    var liveVolStat: LiveData<List<VolumeStatistic>>? = null
-    var liveDailyStat: LiveData<VolumeStatistic>? = null
+class ContainersViewModel(
+    private val contRepo: ContainerRepo?
+) : ViewModel()
+{
+    private var contList: LiveData<List<Container>>? = null
+    private var cont: LiveData<Container>? = null
+    private var volStat: LiveData<VolumeStatistic>? = null
+    var _volStat: MutableLiveData<VolumeStatistic> = MutableLiveData()
 
     fun getContainers() : LiveData<List<Container>>? {
-        val repo = contRepo ?: return null
-        if (liveCont == null) {
-            val liveData = repo.getAll()
-            liveCont = Transformations.map(liveData) {
-                containerList ->
-                containerList.map {
-                    container ->
-                    Container(container.uid, container.name, container.volume)
-                }
+        val repo = contRepo ?: return contList
+        return repo.getContainers()
+    }
+
+    fun getContainer(contId : Int) : LiveData<Container>? {
+        val repo = contRepo ?: return cont
+        return repo.getContainer(contId)
+    }
+
+    private suspend fun insertContainerC(container: Container) =
+        withContext(Dispatchers.IO)
+    {
+        contRepo?.let {
+            it.insertContainer(container)
+        }
+    }
+
+    fun insertContainer(container: Container) = GlobalScope.launch {
+        insertContainerC(container)
+    }
+
+    private suspend fun deleteContainerC(container: Container) =
+        withContext(Dispatchers.IO)
+    {
+        contRepo?.let {
+            it.deleteContainer(container)
+        }
+    }
+
+    fun deleteContainer(container: Container) = GlobalScope.launch {
+        deleteContainerC(container)
+    }
+
+    fun getCurrVolStat() : LiveData<VolumeStatistic>? {
+        val tmpVolStat = VolumeStatistic(DateUtils.getCurrentDate(), 0)
+        _volStat.postValue(tmpVolStat)
+        if (contRepo == null) {
+            insertVolStat(tmpVolStat)
+            volStat = _volStat
+        } else {
+            volStat = contRepo.getCurrVolStat()
+            if (volStat?.value == null) {
+                insertVolStat(tmpVolStat)
             }
         }
-        return liveCont
+
+        return volStat
     }
 
-    fun getContainer(uid: Int) : Container? {
-        val repo = contRepo ?: return null
-        return repo.getContainer(uid)
-    }
-
-    fun addContainer(container: Container) {
-        var repo = contRepo ?: return
-        container?.let {
-            repo.addContainer(it)
+    fun insertVolStat(volStat: VolumeStatistic) = GlobalScope.launch {
+        contRepo?.let {
+            it.updateCurrVolStat(volStat)
         }
-    }
-
-    fun createDailyStat(date: Date) {
-        val repo = contRepo ?: return
-        if (liveDailyStat == null) {
-            val volStat = VolumeStatistic(date, 0)
-            repo.addDailyStat(volStat)
-        }
-    }
-
-    fun getDailyStat(date: Date) : LiveData<VolumeStatistic>? {
-        val repo = contRepo ?: return null
-        if (liveDailyStat == null) {
-            val liveData = repo.getDailyStat(date)
-            liveData?.let {
-                liveDailyStat = Transformations.distinctUntilChanged(it)
-            }
-        }
-        return liveDailyStat
-    }
-
-    fun updateDailyStat(volStat: VolumeStatistic) {
-        val repo = contRepo ?: return
-        repo.updateDailyStat(volStat)
     }
 }
