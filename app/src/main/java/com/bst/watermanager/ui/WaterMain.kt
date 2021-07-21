@@ -69,11 +69,25 @@ class WaterMain : AppCompatActivity(), ContainersAdapter.ContainerAdapterListene
     }
 
     override fun addVolume(cont: Container) {
-        // TODO("Not yet implemented")
+        val volStat = contViewModel?.getVolStat()
+        volStat?.let {
+            it.volume = it.volume!! + cont.volume!!
+            Log.i(TAG, it.volume.toString())
+            contViewModel?.insertVolStat(it)
+        }
     }
 
     override fun removeVolume(cont: Container) {
-        // TODO("Not yet implemented")
+        val volStat = contViewModel?.getVolStat()
+        volStat?.let {
+            if ((it.volume!! - cont.volume!!) >= 0) {
+                it.volume = it.volume!! - cont.volume!!
+            } else {
+                it.volume = 0
+            }
+            Log.i(TAG, it.volume.toString())
+            contViewModel?.insertVolStat(it)
+        }
     }
 
     override fun deleteContainer(cont: Container) {

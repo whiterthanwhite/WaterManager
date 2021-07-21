@@ -27,6 +27,11 @@ interface ContainerDao {
                 "ORDER BY date DESC LIMIT 1")
     fun getCurrVolStat(currDate: Date) : LiveData<VolumeStatistic>
 
+    @Query("SELECT * FROM VolumeStatistic " +
+            "WHERE date = :currDate " +
+            "ORDER BY date DESC LIMIT 1")
+    suspend fun getCurrVolStatAsync(currDate: Date) : VolumeStatistic
+
     @Insert(onConflict = REPLACE)
     fun insertCurrVolStat(volStat: VolumeStatistic)
 

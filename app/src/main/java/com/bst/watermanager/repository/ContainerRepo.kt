@@ -43,6 +43,13 @@ class ContainerRepo(
         return dao.getCurrVolStat(currDate)
     }
 
+    suspend fun getCurrVolStatAsync() = withContext(Dispatchers.IO) {
+        contDao?.let {
+            val currDate = DateUtils.getCurrentDate()
+            it.getCurrVolStatAsync(currDate)
+        }
+    }
+
     suspend fun updateCurrVolStat(volStat: VolumeStatistic) =
         withContext(Dispatchers.IO)
     {

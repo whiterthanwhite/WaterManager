@@ -8,10 +8,7 @@ import com.bst.watermanager.model.Container
 import com.bst.watermanager.model.VolumeStatistic
 import com.bst.watermanager.repository.ContainerRepo
 import com.bst.watermanager.util.DateUtils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.util.*
 
 class ContainersViewModel(
@@ -58,24 +55,33 @@ class ContainersViewModel(
     }
 
     fun getCurrVolStat() : LiveData<VolumeStatistic>? {
-        val tmpVolStat = VolumeStatistic(DateUtils.getCurrentDate(), 0)
-        _volStat.postValue(tmpVolStat)
-        if (contRepo == null) {
-            insertVolStat(tmpVolStat)
-            volStat = _volStat
-        } else {
-            volStat = contRepo.getCurrVolStat()
-            if (volStat?.value == null) {
+        var repo = contRepo ?: return null
+        volStat = repo.getCurrVolStat()
+        getCurrVolStatAsync()
+        return volStat
+    }
+
+    private fun getCurrVolStatAsync() = GlobalScope.launch {
+        contRepo?.let {
+            repo ->
+            val job = async { repo.getCurrVolStatAsync() }
+            var tmpVolStat = job.await()
+            if (tmpVolStat == null) {
+                tmpVolStat = VolumeStatistic(DateUtils.getCurrentDate(), 0)
                 insertVolStat(tmpVolStat)
+                _volStat.postValue(tmpVolStat)
+                volStat = _volStat
             }
         }
-
-        return volStat
     }
 
     fun insertVolStat(volStat: VolumeStatistic) = GlobalScope.launch {
         contRepo?.let {
             it.updateCurrVolStat(volStat)
         }
+    }
+
+    fun getVolStat() : VolumeStatistic? {
+        return volStat?.value
     }
 }
