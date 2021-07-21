@@ -16,7 +16,7 @@ class AddContainerFragment : DialogFragment() {
     internal lateinit var listener: AddContainerListener
 
     interface AddContainerListener {
-        fun onDialogPositiveClick()
+        fun onDialogPositiveClick(container: Container)
         fun onDialogNegativeClick()
     }
 
@@ -26,15 +26,14 @@ class AddContainerFragment : DialogFragment() {
             val builder = AlertDialog.Builder(it)
             val inflater = requireActivity().layoutInflater
             val addContDial = AddContainerDialogBinding.inflate(inflater)
-            val contViewModel : ContainersViewModel by activityViewModels()
 
             builder.setView(addContDial.root)
                 .setPositiveButton(R.string.ok, DialogInterface.OnClickListener {
                     dialog, id ->
                     val name = addContDial.contNameAdd.text.toString()
                     val volume = addContDial.contVolumeAdd.text.toString().toInt()
-                    contViewModel.addContainer(Container(name = name, volume = volume))
-                    listener.onDialogPositiveClick()
+                    val cont = Container(name = name, volume = volume)
+                    listener.onDialogPositiveClick(cont)
                 })
                 .setNegativeButton(R.string.cancel, DialogInterface.OnClickListener {
                     dialog, id ->
