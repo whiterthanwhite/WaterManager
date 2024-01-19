@@ -13,27 +13,28 @@ interface ContainerDao {
     @Query("SELECT * FROM Container ORDER BY uid")
     fun getAll(): LiveData<List<Container>>
 
-    @Query("SELECT * FROM CONTAINER WHERE uid = :contId")
-    fun getContainer(contId: Int) : Container
-
-    @Query("SELECT * FROM VolumeStatistic ORDER BY date")
-    fun getVolumeStat() : LiveData<List<VolumeStatistic>>
-
-    @Query("SELECT * FROM VolumeStatistic WHERE date = :date")
-    fun getDailyStat(date: Date) : LiveData<VolumeStatistic>?
-
-    @Update(onConflict = REPLACE)
-    fun updateDailyStat(volStat: VolumeStatistic)
+    @Query("SELECT * FROM Container WHERE uid = :contId")
+    fun getContainer(contId: Int) : LiveData<Container>
 
     @Insert(onConflict = REPLACE)
     fun insertContainer(container: Container) : Long
 
-    @Insert(onConflict = REPLACE)
-    fun insertDailyStatistic(volStat: VolumeStatistic)
-
     @Delete
     fun deleteContainer(container: Container)
 
+    @Query("SELECT * FROM VolumeStatistic " +
+                "WHERE date = :currDate " +
+                "ORDER BY date DESC LIMIT 1")
+    fun getCurrVolStat(currDate: Date) : LiveData<VolumeStatistic>
+
+    @Query("SELECT * FROM VolumeStatistic " +
+            "WHERE date = :currDate " +
+            "ORDER BY date DESC LIMIT 1")
+    suspend fun getCurrVolStatAsync(currDate: Date) : VolumeStatistic
+
+    @Insert(onConflict = REPLACE)
+    fun insertCurrVolStat(volStat: VolumeStatistic)
+
     @Delete
-    fun deleteDailyStat(volStat: VolumeStatistic)
+    fun deleteCurrVolStat(volStat: VolumeStatistic)
 }
